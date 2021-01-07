@@ -20,7 +20,7 @@ if (strpos($_SERVER['SERVER_NAME'], 'localhost') !== false
 
 require $vendors;
 
-(new Dotenv())->bootEnv(dirname(__DIR__).'/.env');
+(new Dotenv())->bootEnv($envs);
 
 if ($_SERVER['APP_DEBUG']) {
     umask(0000);
