@@ -5,7 +5,20 @@ use Symfony\Component\Dotenv\Dotenv;
 use Symfony\Component\ErrorHandler\Debug;
 use Symfony\Component\HttpFoundation\Request;
 
-require dirname(__DIR__).'/vendor/autoload.php';
+$isProd = false;
+$vendors = '';
+$envs = '';
+
+if (strpos($_SERVER['SERVER_NAME'], 'localhost') !== false
+    || strpos($_SERVER['SERVER_NAME'], '127.0.0.1') !== false) {
+	$vendors =  dirname(__DIR__).'/vendor/autoload.php';
+	$envs = dirname(__DIR__).'/.env';
+} else {
+    $vendors = dirname( __DIR__ ) . '/httpd.private/books/vendor/autoload.php';
+    $envs    = dirname( __DIR__ ) . '/httpd.private/books/.env';
+}
+
+require $vendors;
 
 (new Dotenv())->bootEnv(dirname(__DIR__).'/.env');
 
