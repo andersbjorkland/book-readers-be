@@ -58,7 +58,6 @@
         "symfony/symfony": "*"
     },
     "extra": {
-        "public-dir": "httpd.www",
         "symfony": {
             "allow-contrib": false,
             "require": "5.2.*"

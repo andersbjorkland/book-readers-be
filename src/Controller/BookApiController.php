@@ -15,9 +15,12 @@ class BookApiController extends AbstractController
      */
     public function index(string $query, HttpClientInterface $client): Response
     {
+        $apiToken = $this->getParameter('app.api_token');
+        $apiKeyValue = $apiToken ? "&key=" . $apiToken : "";
+
         $response = $client->request(
             'GET',
-            'https://www.googleapis.com/books/v1/volumes?q=' . $query
+            'https://www.googleapis.com/books/v1/volumes?q=' . $query . $apiKeyValue
         );
         return $this->json($response->toArray());
     }
