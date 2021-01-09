@@ -23,6 +23,18 @@ class BookApiController extends AbstractController
     }
 
     /**
+     * @Route("/api/images/{path}")
+     */
+    public function images(string $path, HttpClientInterface $client): Response
+    {
+        $target = "https://books.google.com/books/content?id=" . $path;
+
+        $contents = file_get_contents($target);
+
+        return new Response($contents, 200, ['Content-type'=>'image/jpeg']);
+    }
+
+    /**
      * @Route("/api/{query}", name="book_api")
      */
     public function index(string $query, HttpClientInterface $client): Response
