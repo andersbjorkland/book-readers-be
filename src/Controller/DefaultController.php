@@ -13,7 +13,7 @@ class DefaultController extends AbstractController
     /**
      * @Route("/auth", name="default")
      */
-    public function index(string $query, HttpClientInterface $client): Response
+    public function index(HttpClientInterface $client): Response
     {
         return new Response("Yiipi!");
     }
