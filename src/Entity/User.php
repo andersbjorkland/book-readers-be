@@ -2,11 +2,20 @@
 
 namespace App\Entity;
 
+use ApiPlatform\Core\Annotation\ApiResource;
 use App\Repository\UserRepository;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Security\Core\User\UserInterface;
+use Symfony\Component\Serializer\Annotation\Groups;
+use Symfony\Component\Validator\Constraints as Assert;
 
 /**
+ * @ApiResource(
+ *      normalizationContext={"groups"={"user:read"}},
+ *      denormalizationContext={"groups"={"user:write"}},
+ * )
+ * @UniqueEntity(fields={"email"})
  * @ORM\Entity(repositoryClass=UserRepository::class)
  * @ORM\Table(name="`user`")
  */
@@ -20,6 +29,9 @@ class User implements UserInterface
     private $id;
 
     /**
+     * @Groups({"user:read", "user:write"})
+     * @Assert\NotBlank()
+     * @Assert\Email()
      * @ORM\Column(type="string", length=180, unique=true)
      */
     private $email;
@@ -31,14 +43,15 @@ class User implements UserInterface
 
     /**
      * @var string The hashed password
+     * @Groups({"user:write"})
      * @ORM\Column(type="string")
      */
     private $password;
 
     /**
-     * @ORM\Column(type="string", unique=true, length=255, nullable=true)
+     * @ORM\Column(type="boolean")
      */
-    private $apiToken;
+    private $isVerified = false;
 
     public function getId(): ?int
     {
@@ -118,15 +131,20 @@ class User implements UserInterface
         // $this->plainPassword = null;
     }
 
-    public function getApiToken(): ?string
+    public function getIsVerified(): ?bool
     {
-        return $this->apiToken;
+        return $this->isVerified;
     }
 
-    public function setApiToken(?string $apiToken): self
+    public function setIsVerified(bool $isVerified): self
     {
-        $this->apiToken = $apiToken;
+        $this->isVerified = $isVerified;
 
         return $this;
+    }
+
+    public function isVerified(): bool
+    {
+        return $this->isVerified;
     }
 }

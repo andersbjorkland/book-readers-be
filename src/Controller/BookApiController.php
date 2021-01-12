@@ -11,7 +11,7 @@ use Symfony\Contracts\HttpClient\HttpClientInterface;
 class BookApiController extends AbstractController
 {
     /**
-     * @Route("/api/details/{id}", name="book_details")
+     * @Route("/book-api/details/{id}", name="book_details")
      */
     public function details(string $id, HttpClientInterface $client): Response
     {
@@ -23,7 +23,7 @@ class BookApiController extends AbstractController
     }
 
     /**
-     * @Route("/api/images/{path}")
+     * @Route("/book-api/images/{path}")
      */
     public function images(string $path, HttpClientInterface $client): Response
     {
@@ -35,7 +35,7 @@ class BookApiController extends AbstractController
     }
 
     /**
-     * @Route("/api/{query}", name="book_api")
+     * @Route("/book-api/{query}", name="book_api")
      */
     public function index(string $query, HttpClientInterface $client): Response
     {
