@@ -4,6 +4,8 @@ namespace App\Entity;
 
 use ApiPlatform\Core\Annotation\ApiResource;
 use App\Repository\UserRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Security\Core\User\UserInterface;
@@ -44,6 +46,7 @@ class User implements UserInterface
     /**
      * @var string The hashed password
      * @Groups({"user:write"})
+     * @Assert\NotBlank()
      * @ORM\Column(type="string")
      */
     private $password;
@@ -52,6 +55,21 @@ class User implements UserInterface
      * @ORM\Column(type="boolean")
      */
     private $isVerified = false;
+
+    /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private $apiToken;
+
+    /**
+     * @ORM\ManyToMany(targetEntity=Book::class, inversedBy="users")
+     */
+    private $toRead;
+
+    public function __construct()
+    {
+        $this->toRead = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -147,4 +165,46 @@ class User implements UserInterface
     {
         return $this->isVerified;
     }
+
+    public function getApiToken(): ?string
+    {
+        return $this->apiToken;
+    }
+
+    public function setApiToken(?string $apiToken): self
+    {
+        $this->apiToken = $apiToken;
+
+        return $this;
+    }
+
+	public function __toString() {
+                        		return $this->getEmail();
+                        	}
+
+    /**
+     * @return Collection|Book[]
+     */
+    public function getToRead(): Collection
+    {
+        return $this->toRead;
+    }
+
+    public function addToRead(Book $toRead): self
+    {
+        if (!$this->toRead->contains($toRead)) {
+            $this->toRead[] = $toRead;
+        }
+
+        return $this;
+    }
+
+    public function removeToRead(Book $toRead): self
+    {
+        $this->toRead->removeElement($toRead);
+
+        return $this;
+    }
+
+
 }
