@@ -33,6 +33,7 @@ class JwtAuthenticator extends AbstractGuardAuthenticator {
 
 	public function supports( Request $request ) {
 		$supports = false;
+		$this->headers = $request->headers;
 		if ($request->headers->has('Authorization')) {
 			$this->headerKey = 'Authorization';
 			$supports = true;
@@ -48,7 +49,6 @@ class JwtAuthenticator extends AbstractGuardAuthenticator {
 
 	public function getCredentials( Request $request ) {
 		$authorizationHeader = $request->headers->get($this->headerKey);
-		return new JsonResponse(['message' => json_encode($authorizationHeader)]);
 		$this->logger->error("Checking credentials: ");
 		$this->logger->error($authorizationHeader);
 
@@ -92,6 +92,7 @@ class JwtAuthenticator extends AbstractGuardAuthenticator {
 		$data = [
 			'message' => 'Authentication Required',
 			'headerKey' => $this->headerKey,
+			'headers' => $this->headers,
 			'misc' => json_encode($request)
 		];
 		$this->logger->debug("Authenticating not accessed. " . $request->getSchemeAndHttpHost());
