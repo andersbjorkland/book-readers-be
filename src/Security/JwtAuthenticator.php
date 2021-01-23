@@ -6,6 +6,7 @@ namespace App\Security;
 use App\Entity\User;
 use Doctrine\ORM\EntityManagerInterface;
 use Firebase\JWT\JWT;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\ParameterBag\ContainerBagInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -19,11 +20,13 @@ use Symfony\Component\Security\Guard\AbstractGuardAuthenticator;
 class JwtAuthenticator extends AbstractGuardAuthenticator {
 	private $em;
 	private $params;
+	private $logger;
 
-	public function __construct(EntityManagerInterface $em, ContainerBagInterface $params)
+	public function __construct(EntityManagerInterface $em, ContainerBagInterface $params, LoggerInterface $logger)
 	{
 		$this->em = $em;
 		$this->params = $params;
+		$this->logger = $logger;
 	}
 
 	public function start( Request $request, AuthenticationException $authException = null ) {
@@ -38,7 +41,11 @@ class JwtAuthenticator extends AbstractGuardAuthenticator {
 	}
 
 	public function getCredentials( Request $request ) {
-		return $request->headers->get('Authorization');
+		$authorizationHeader = $request->headers->get('Authorization');
+		$this->logger->info("Checking credentials: ");
+		$this->logger->info($authorizationHeader);
+
+		return $authorizationHeader;
 	}
 
 	public function getUser( $credentials, UserProviderInterface $userProvider ) {
@@ -63,6 +70,8 @@ class JwtAuthenticator extends AbstractGuardAuthenticator {
 	}
 
 	public function onAuthenticationFailure( Request $request, AuthenticationException $exception ) {
+		$this->logger->info("Authentication failed. " . $exception->getMessage());
+
 		return new JsonResponse([
 			'message' => $exception->getMessage()
 		], Response::HTTP_UNAUTHORIZED);
