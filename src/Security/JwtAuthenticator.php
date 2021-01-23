@@ -42,8 +42,8 @@ class JwtAuthenticator extends AbstractGuardAuthenticator {
 
 	public function getCredentials( Request $request ) {
 		$authorizationHeader = $request->headers->get('Authorization');
-		$this->logger->info("Checking credentials: ");
-		$this->logger->info($authorizationHeader);
+		$this->logger->error("Checking credentials: ");
+		$this->logger->error($authorizationHeader);
 
 		return $authorizationHeader;
 	}
@@ -70,7 +70,7 @@ class JwtAuthenticator extends AbstractGuardAuthenticator {
 	}
 
 	public function onAuthenticationFailure( Request $request, AuthenticationException $exception ) {
-		$this->logger->info("Authentication failed. " . $exception->getMessage());
+		$this->logger->error("Authentication failed. " . $exception->getMessage());
 
 		return new JsonResponse([
 			'message' => $exception->getMessage()
