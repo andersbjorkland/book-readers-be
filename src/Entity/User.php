@@ -62,7 +62,7 @@ class User implements UserInterface
     private $apiToken;
 
     /**
-     * @ORM\ManyToMany(targetEntity=Book::class, inversedBy="users")
+     * @ORM\ManyToMany(targetEntity=Book::class, inversedBy="users", cascade={"remove"})
      */
     private $toRead;
 

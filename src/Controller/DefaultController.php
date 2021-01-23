@@ -3,8 +3,10 @@
 namespace App\Controller;
 
 use App\Entity\Book;
+use App\Entity\User;
 use App\Repository\BookRepository;
 use App\Repository\UserRepository;
+use Doctrine\ORM\EntityManager;
 use Firebase\JWT\JWT;
 use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -58,6 +60,25 @@ class DefaultController extends AbstractController
 
         return new JsonResponse(["message" => "Something went wrong. Could not resolve user from token."], Response::HTTP_NOT_ACCEPTABLE);
     }
+
+	/**
+	 * @Route("/user/unregister", name="unregister")
+	 */
+	public function unregister(Request $request, LoggerInterface $logger): Response
+	{
+		$user = $this->getUser();
+		if ($user) {
+			$entityManager = $this->getDoctrine()->getManager();
+			$entityManager->remove($user);
+			$entityManager->flush();
+
+			return new JsonResponse([
+				"message" => "Unregistered Successfully",
+			], 204);
+		}
+
+		return new JsonResponse(["message" => "Something went wrong. Could not resolve user from token."], 404);
+	}
 
 	/**
 	 * @Route("/user/to-read", name="addToRead", methods={"POST"})

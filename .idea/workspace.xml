@@ -3,7 +3,8 @@
   <component name="ChangeListManager">
     <list default="true" id="7f4e2b01-34b0-4a2f-b211-537f8f354dfa" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Security/JwtAuthenticator.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/Security/JwtAuthenticator.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Controller/DefaultController.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/Controller/DefaultController.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Entity/User.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/Entity/User.php" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -127,6 +128,7 @@
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
     <property name="WebServerToolWindowFactoryState" value="false" />
     <property name="last_opened_file_path" value="$PROJECT_DIR$/../../js/book-readers" />
+    <property name="nodejs_package_manager_path" value="npm" />
     <property name="php.override.implement.member.chooser.php.doc" value="NONE" />
     <property name="vue.rearranger.settings.migration" value="true" />
   </component>
@@ -139,7 +141,8 @@
       <option name="presentableId" value="Default" />
       <updated>1610535219001</updated>
       <workItem from="1610535223771" duration="34989000" />
-      <workItem from="1611400410728" duration="5055000" />
+      <workItem from="1611400410728" duration="5160000" />
+      <workItem from="1611432425008" duration="2325000" />
     </task>
     <servers />
   </component>
