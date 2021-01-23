@@ -32,7 +32,9 @@ class JwtAuthenticator extends AbstractGuardAuthenticator {
 
 	public function start( Request $request, AuthenticationException $authException = null ) {
 		$data = [
-			'message' => 'Authentication Required'
+			'message' => 'Authentication Required',
+			'headerKey' => $this->headerKey,
+			'misc' => json_encode($request)
 		];
 		$this->logger->debug("Authenticating not accessed. " . $request->getSchemeAndHttpHost());
 		return new JsonResponse($data, Response::HTTP_UNAUTHORIZED);
