@@ -21,6 +21,7 @@ class JwtAuthenticator extends AbstractGuardAuthenticator {
 	private $em;
 	private $params;
 	private $logger;
+	private $headerKey;
 
 	public function __construct(EntityManagerInterface $em, ContainerBagInterface $params, LoggerInterface $logger)
 	{
@@ -38,11 +39,22 @@ class JwtAuthenticator extends AbstractGuardAuthenticator {
 	}
 
 	public function supports( Request $request ) {
-		return $request->headers->has('Authorization');
+		$supports = false;
+		if ($request->headers->has('Authorization')) {
+			$this->headerKey = 'Authorization';
+			$supports = true;
+		}
+
+		if ($request->headers->has('authorization')) {
+			$this->headerKey = 'authorization';
+			$supports = true;
+		}
+
+		return $supports;
 	}
 
 	public function getCredentials( Request $request ) {
-		$authorizationHeader = $request->headers->get('Authorization');
+		$authorizationHeader = $request->headers->get($this->headerKey);
 		$this->logger->error("Checking credentials: ");
 		$this->logger->error($authorizationHeader);
 
