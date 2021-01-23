@@ -48,11 +48,7 @@ class JwtAuthenticator extends AbstractGuardAuthenticator {
 	}
 
 	public function getCredentials( Request $request ) {
-		$authorizationHeader = $request->headers->get($this->headerKey);
-		$this->logger->error("Checking credentials: ");
-		$this->logger->error($authorizationHeader);
-
-		return $authorizationHeader;
+		return $request->headers->get($this->headerKey);
 	}
 
 	public function getUser( $credentials, UserProviderInterface $userProvider ) {
@@ -91,9 +87,6 @@ class JwtAuthenticator extends AbstractGuardAuthenticator {
 	public function start( Request $request, AuthenticationException $authException = null ) {
 		$data = [
 			'message' => 'Authentication Required',
-			'headerKey' => $this->headerKey,
-			'headers' => $this->headers,
-			'misc' => json_encode($request)
 		];
 		$this->logger->debug("Authenticating not accessed. " . $request->getSchemeAndHttpHost());
 		return new JsonResponse($data, Response::HTTP_UNAUTHORIZED);
