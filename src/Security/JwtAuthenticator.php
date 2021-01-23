@@ -22,22 +22,13 @@ class JwtAuthenticator extends AbstractGuardAuthenticator {
 	private $params;
 	private $logger;
 	private $headerKey;
+	private $headers;
 
 	public function __construct(EntityManagerInterface $em, ContainerBagInterface $params, LoggerInterface $logger)
 	{
 		$this->em = $em;
 		$this->params = $params;
 		$this->logger = $logger;
-	}
-
-	public function start( Request $request, AuthenticationException $authException = null ) {
-		$data = [
-			'message' => 'Authentication Required',
-			'headerKey' => $this->headerKey,
-			'misc' => json_encode($request)
-		];
-		$this->logger->debug("Authenticating not accessed. " . $request->getSchemeAndHttpHost());
-		return new JsonResponse($data, Response::HTTP_UNAUTHORIZED);
 	}
 
 	public function supports( Request $request ) {
@@ -57,6 +48,7 @@ class JwtAuthenticator extends AbstractGuardAuthenticator {
 
 	public function getCredentials( Request $request ) {
 		$authorizationHeader = $request->headers->get($this->headerKey);
+		return new JsonResponse(['message' => json_encode($authorizationHeader)]);
 		$this->logger->error("Checking credentials: ");
 		$this->logger->error($authorizationHeader);
 
@@ -94,6 +86,16 @@ class JwtAuthenticator extends AbstractGuardAuthenticator {
 
 	public function onAuthenticationSuccess( Request $request, TokenInterface $token, string $providerKey ) {
 		return ;
+	}
+
+	public function start( Request $request, AuthenticationException $authException = null ) {
+		$data = [
+			'message' => 'Authentication Required',
+			'headerKey' => $this->headerKey,
+			'misc' => json_encode($request)
+		];
+		$this->logger->debug("Authenticating not accessed. " . $request->getSchemeAndHttpHost());
+		return new JsonResponse($data, Response::HTTP_UNAUTHORIZED);
 	}
 
 	public function supportsRememberMe() {

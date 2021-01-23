@@ -2,6 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="7f4e2b01-34b0-4a2f-b211-537f8f354dfa" name="Default Changelist" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/Security/JwtAuthenticator.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/Security/JwtAuthenticator.php" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -138,7 +139,7 @@
       <option name="presentableId" value="Default" />
       <updated>1610535219001</updated>
       <workItem from="1610535223771" duration="34989000" />
-      <workItem from="1611400410728" duration="3369000" />
+      <workItem from="1611400410728" duration="4123000" />
     </task>
     <servers />
   </component>
