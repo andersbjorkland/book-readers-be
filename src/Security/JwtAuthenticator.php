@@ -31,7 +31,8 @@ class JwtAuthenticator extends AbstractGuardAuthenticator {
 
 	public function start( Request $request, AuthenticationException $authException = null ) {
 		$data = [
-			'message' => 'Authentication Required'
+			'message' => 'Authentication Required',
+			'request' => $request->toArray()
 		];
 		return new JsonResponse($data, Response::HTTP_UNAUTHORIZED);
 	}
