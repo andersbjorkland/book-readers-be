@@ -16,6 +16,8 @@ use Symfony\Component\Validator\Constraints as Assert;
  * @ApiResource(
  *      normalizationContext={"groups"={"user:read"}},
  *      denormalizationContext={"groups"={"user:write"}},
+ *      collectionOperations={"POST"},
+ *      itemOperations={"GET"},
  * )
  * @UniqueEntity(fields={"email"})
  * @ORM\Entity(repositoryClass=UserRepository::class)
@@ -31,7 +33,7 @@ class User implements UserInterface
     private $id;
 
     /**
-     * @Groups({"user:read", "user:write"})
+     * @Groups({"user:write"})
      * @Assert\NotBlank()
      * @Assert\Email()
      * @ORM\Column(type="string", length=180, unique=true)
@@ -66,9 +68,15 @@ class User implements UserInterface
      */
     private $toRead;
 
+    /**
+     * @ORM\ManyToMany(targetEntity=CurrentRead::class, inversedBy="users")
+     */
+    private $currentRead;
+
     public function __construct()
     {
         $this->toRead = new ArrayCollection();
+        $this->currentRead = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -179,8 +187,8 @@ class User implements UserInterface
     }
 
 	public function __toString() {
-                        		return $this->getEmail();
-                        	}
+                                                      		return $this->getEmail();
+                                                      	}
 
     /**
      * @return Collection|Book[]
@@ -202,6 +210,30 @@ class User implements UserInterface
     public function removeToRead(Book $toRead): self
     {
         $this->toRead->removeElement($toRead);
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|CurrentRead[]
+     */
+    public function getCurrentRead(): Collection
+    {
+        return $this->currentRead;
+    }
+
+    public function addCurrentRead(CurrentRead $currentRead): self
+    {
+        if (!$this->currentRead->contains($currentRead)) {
+            $this->currentRead[] = $currentRead;
+        }
+
+        return $this;
+    }
+
+    public function removeCurrentRead(CurrentRead $currentRead): self
+    {
+        $this->currentRead->removeElement($currentRead);
 
         return $this;
     }

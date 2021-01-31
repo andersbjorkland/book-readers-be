@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use App\Entity\CurrentRead;
 use App\Repository\BookRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -28,6 +29,16 @@ class Book
      * @ORM\ManyToMany(targetEntity=User::class, mappedBy="toRead")
      */
     private $users;
+
+	/**
+	 * @ORM\OneToOne(targetEntity=CurrentRead::class, cascade={"persist", "remove"}, inversedBy="book")
+	 */
+	private $currentRead;
+
+    /**
+     * @ORM\Column(type="json", nullable=true)
+     */
+    private $data = [];
 
     public function __construct()
     {
@@ -74,6 +85,30 @@ class Book
         if ($this->users->removeElement($user)) {
             $user->removeToRead($this);
         }
+
+        return $this;
+    }
+
+    public function getCurrentRead(): ?CurrentRead
+    {
+    	return $this->currentRead;
+    }
+
+	public function setCurrentRead(CurrentRead $currentRead): self
+         	{
+         		$this->currentRead = $currentRead;
+         
+         		return $this;
+         	}
+
+    public function getData(): ?array
+    {
+        return $this->data;
+    }
+
+    public function setData(?array $data): self
+    {
+        $this->data = $data;
 
         return $this;
     }

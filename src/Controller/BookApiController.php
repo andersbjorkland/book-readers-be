@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Repository\BookRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpClient\CurlHttpClient;
 use Symfony\Component\HttpFoundation\Response;
@@ -13,13 +14,19 @@ class BookApiController extends AbstractController
     /**
      * @Route("/book-api/details/{id}", name="book_details")
      */
-    public function details(string $id, HttpClientInterface $client): Response
+    public function details(string $id, HttpClientInterface $client, BookRepository $bookRepository): Response
     {
-        $response = $client->request(
-            'GET',
-            'https://www.googleapis.com/books/v1/volumes/' . $id
-        );
-        return $this->json($response->toArray());
+    	$book = $bookRepository->findOneByVolumeId($id);
+    	if (!$book) {
+		    $response = $client->request(
+			    'GET',
+			    'https://www.googleapis.com/books/v1/volumes/' . $id
+		    );
+
+		    return $this->json( $response->toArray() );
+	    }
+
+    	return $this->json($book->getData());
     }
 
     /**

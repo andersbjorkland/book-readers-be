@@ -3,9 +3,13 @@
 namespace App\Controller;
 
 use App\Entity\Book;
+use App\Entity\CurrentRead;
 use App\Entity\User;
 use App\Repository\BookRepository;
+use App\Repository\CurrentReadRepository;
 use App\Repository\UserRepository;
+use App\Service\BookCreator;
+use App\Service\BookDataFetcher;
 use Doctrine\ORM\EntityManager;
 use Firebase\JWT\JWT;
 use Psr\Log\LoggerInterface;
@@ -25,12 +29,24 @@ class DefaultController extends AbstractController
 	public function index(Request $request, HttpClientInterface $client, LoggerInterface $logger): Response
 	{
 		$user = $this->getUser();
+		$logger->info($this->getUser());
 		if ($user) {
-			$books = $this->getToRead($client);
-			return new JsonResponse(["message" => "Successful", "toRead" => $books]);
+			$toRead = $user->getToRead();
+			$toReadArr = [];
+
+			for($i = 0; $i < count($toRead); $i++) {
+				$toReadArr[] = $toRead[$i]->getData();
+			}
+
+			$currentRead = $user->getCurrentRead();
+			$currentReadArr = [];
+
+			for($i = 0; $i < count($currentRead); $i++) {
+				$currentReadArr[] = $currentRead[$i]->getBook()->getData();
+			}
+			return new JsonResponse(["message" => "Successful", "toRead" => $toReadArr, "currentRead" => $currentReadArr]);
 		}
 		$logger->info($request);
-		$logger->info($this->getUser());
 
 		return new JsonResponse(["message" => "JIPPI!!!"]);
 	}
@@ -81,9 +97,57 @@ class DefaultController extends AbstractController
 	}
 
 	/**
+	 * @Route("/user/current-read", name="addCurrentRead", methods={"POST"})
+	 */
+	public function addCurrentRead(
+		Request $request,
+		BookCreator $bookCreator,
+		CurrentReadRepository $currentReadRepository,
+		LoggerInterface  $logger) : Response
+	{
+		$user = $this->getUser();
+		$logger->info($request);
+		$data = json_decode($request->getContent(), true);
+		$id = $data["volumeId"];
+
+		if(!$id) {
+			return new JsonResponse(["message" => "Key volumeId not present"], Response::HTTP_NOT_FOUND);
+		}
+
+		$logger->info("Adding to-read with volumeId: " . $id);
+
+
+
+		$entityManager = $this->getDoctrine()->getManager();
+		$book = $bookCreator->getBook($id);
+
+		if (!$book->getCurrentRead()) {
+			$currentRead = $currentReadRepository->findOneByBook($book);
+			if (!$currentRead) {
+				$currentRead = new CurrentRead();
+				$currentRead->setBook( $book );
+				$entityManager->persist($currentRead);
+			}
+		}
+
+		$user->removeToRead($book);
+		$user->addCurrentRead($currentRead);
+		$entityManager->persist($user);
+		$entityManager->flush();
+
+		return new JsonResponse(["message" => "Added book to user's current read"], Response::HTTP_CREATED);
+	}
+
+	/**
 	 * @Route("/user/to-read", name="addToRead", methods={"POST"})
 	 */
-    public function addToRead(Request $request, HttpClientInterface $client, BookRepository $bookRepository, LoggerInterface  $logger) : Response
+    public function addToRead(
+    	Request $request,
+	    HttpClientInterface $client,
+	    BookCreator $bookCreator,
+	    BookRepository $bookRepository,
+	    LoggerInterface  $logger
+    ) : Response
     {
     	$user = $this->getUser();
 	    $logger->info($request);
@@ -92,13 +156,7 @@ class DefaultController extends AbstractController
 	    $logger->info("Adding to-read with volumeId: " . $id);
 
 	    $entityManager = $this->getDoctrine()->getManager();
-	    $book = $bookRepository->findOneByVolumeId($id);
-	    if (!$book) {
-	    	$book = new Book();
-	    	$book->setVolumeId($id);
-
-	    	$entityManager->persist($book);
-	    }
+	    $book = $bookCreator->getBook($id);
 
 	    $user->addToRead($book);
 	    $entityManager->persist($user);
@@ -148,4 +206,21 @@ class DefaultController extends AbstractController
 		    return $books;
 	    }
     }
+
+	protected function getCurrentRead(HttpClientInterface $client)
+	{
+		$user = $this->getUser();
+		if ($user) {
+			$books = [];
+			$currentRead = $user->getCurrentRead();
+			for ($i = 0; $i < count($currentRead); $i++) {
+				$response = $client->request(
+					'GET',
+					'https://www.googleapis.com/books/v1/volumes/' . $currentRead[$i]->getBook()->getVolumeId()
+				);
+				$books[] = $response->toArray();
+			}
+			return $books;
+		}
+	}
 }
