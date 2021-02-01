@@ -40,9 +40,16 @@ class Book
      */
     private $data = [];
 
+    /**
+     * @ORM\OneToMany(targetEntity=Review::class, mappedBy="book", orphanRemoval=true)
+     */
+    private $reviews;
+
+
     public function __construct()
     {
         $this->users = new ArrayCollection();
+        $this->reviews = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -95,11 +102,11 @@ class Book
     }
 
 	public function setCurrentRead(CurrentRead $currentRead): self
-         	{
-         		$this->currentRead = $currentRead;
-         
-         		return $this;
-         	}
+                                       	{
+                                       		$this->currentRead = $currentRead;
+                                       
+                                       		return $this;
+                                       	}
 
     public function getData(): ?array
     {
@@ -109,6 +116,36 @@ class Book
     public function setData(?array $data): self
     {
         $this->data = $data;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Review[]
+     */
+    public function getReviews(): Collection
+    {
+        return $this->reviews;
+    }
+
+    public function addReview(Review $review): self
+    {
+        if (!$this->reviews->contains($review)) {
+            $this->reviews[] = $review;
+            $review->setBook($this);
+        }
+
+        return $this;
+    }
+
+    public function removeReview(Review $review): self
+    {
+        if ($this->reviews->removeElement($review)) {
+            // set the owning side to null (unless already changed)
+            if ($review->getBook() === $this) {
+                $review->setBook(null);
+            }
+        }
 
         return $this;
     }

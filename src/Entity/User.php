@@ -73,10 +73,16 @@ class User implements UserInterface
      */
     private $currentRead;
 
+    /**
+     * @ORM\OneToMany(targetEntity=Review::class, mappedBy="user", orphanRemoval=true)
+     */
+    private $reviews;
+
     public function __construct()
     {
         $this->toRead = new ArrayCollection();
         $this->currentRead = new ArrayCollection();
+        $this->reviews = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -187,8 +193,8 @@ class User implements UserInterface
     }
 
 	public function __toString() {
-                                                      		return $this->getEmail();
-                                                      	}
+                                                                     		return $this->getEmail();
+                                                                     	}
 
     /**
      * @return Collection|Book[]
@@ -234,6 +240,36 @@ class User implements UserInterface
     public function removeCurrentRead(CurrentRead $currentRead): self
     {
         $this->currentRead->removeElement($currentRead);
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Review[]
+     */
+    public function getReviews(): Collection
+    {
+        return $this->reviews;
+    }
+
+    public function addReview(Review $review): self
+    {
+        if (!$this->reviews->contains($review)) {
+            $this->reviews[] = $review;
+            $review->setUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeReview(Review $review): self
+    {
+        if ($this->reviews->removeElement($review)) {
+            // set the owning side to null (unless already changed)
+            if ($review->getUser() === $this) {
+                $review->setUser(null);
+            }
+        }
 
         return $this;
     }
