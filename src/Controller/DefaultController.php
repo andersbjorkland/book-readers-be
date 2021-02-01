@@ -125,9 +125,15 @@ class DefaultController extends AbstractController
 			$currentRead = $currentReadRepository->findOneByBook($book);
 			if (!$currentRead) {
 				$currentRead = new CurrentRead();
+
 				$currentRead->setBook( $book );
 				$entityManager->persist($currentRead);
+
+				$book->setCurrentRead($currentRead);
+				$entityManager->persist($book);
 			}
+		} else {
+			$currentRead = $book->getCurrentRead();
 		}
 
 		$user->removeToRead($book);
@@ -136,6 +142,35 @@ class DefaultController extends AbstractController
 		$entityManager->flush();
 
 		return new JsonResponse(["message" => "Added book to user's current read"], Response::HTTP_CREATED);
+	}
+
+	/**
+	 * @Route("/user/current-read", name="removeCurrentRead", methods={"DELETE"})
+	 */
+	public function removeCurrentRead(Request $request, HttpClientInterface $client, BookRepository $bookRepository) : Response
+	{
+		$user = $this->getUser();
+		$data = json_decode($request->getContent(), true);
+		$id = $data["volumeId"];
+		if (!$id) {
+			return new JsonResponse(["message" => "Expected a value for key 'volumeId'."], Response::HTTP_FAILED_DEPENDENCY);
+		}
+
+		$book = $bookRepository->findOneByVolumeId($id);
+		$currentRead = $book->getCurrentRead();
+		if (!$book) {
+			return new JsonResponse(["message" => "No book found"], Response::HTTP_FAILED_DEPENDENCY);
+		}
+		if (!$currentRead) {
+			return new JsonResponse(["message" => "No book currently as current read."], Response::HTTP_FAILED_DEPENDENCY);
+		}
+
+		$user->removeCurrentRead($currentRead);
+		$entityManager = $this->getDoctrine()->getManager();
+		$entityManager->persist($user);
+		$entityManager->flush();
+
+		return new JsonResponse(["message" => "Current read was removed."], Response::HTTP_ACCEPTED);
 	}
 
 	/**

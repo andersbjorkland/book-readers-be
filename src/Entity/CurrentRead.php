@@ -20,7 +20,7 @@ class CurrentRead
     private $id;
 
     /**
-     * @ORM\OneToOne(targetEntity=Book::class, mappedBy="currentRead")
+     * @ORM\OneToOne(targetEntity=Book::class, mappedBy="currentRead", cascade={"persist"})
      * @ORM\JoinColumn(nullable=false)
      */
     private $book;
