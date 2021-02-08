@@ -316,13 +316,17 @@ class DefaultController extends AbstractController
 		$recommend = $review["recommend"];
 		$isDraft = $review["isDraft"];
 
+		$review = new Review();
+
+
 		$logger->info("Searching for flairs: ");
 		$flairs = [];
+
 		for ($i = 0; $i < count($impressions); $i++) {
 			$flair = $flairRepository->findOneByFa($impressions[$i]);
 			if ($flair) {
 				$logger->info($flair->getName());
-				$flairs[] = $flair;
+				$review->addFlair($flair);
 			} else {
 				$logger->info("Not found with: " . $impressions[$i]);
 			}
@@ -332,7 +336,6 @@ class DefaultController extends AbstractController
 			$shortReview = substr($shortReview, 0, 255);
 		}
 
-		$review = new Review();
 		$review->setBook($book);
 		$review->setScore($score);
 		$review->setText($longReview);
