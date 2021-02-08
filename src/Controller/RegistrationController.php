@@ -6,6 +6,7 @@ use App\Entity\User;
 use App\Form\RegistrationFormType;
 use App\Security\EmailVerifier;
 use App\Repository\UserRepository;
+use Psr\Log\LoggerInterface;
 use Symfony\Bridge\Twig\Mime\TemplatedEmail;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -28,7 +29,7 @@ class RegistrationController extends AbstractController
     /**
      * @Route("/verify/email", name="app_verify_email")
      */
-    public function verifyUserEmail(Request $request, UserRepository $userRepository): Response
+    public function verifyUserEmail(Request $request, UserRepository $userRepository, LoggerInterface $logger): Response
     {
         $id = $request->get('id');
 
@@ -42,9 +43,13 @@ class RegistrationController extends AbstractController
             return new JsonResponse(["message" => "No user found"], 402);
         }
 
+        $uri = $request->getUri();
+
+	    $logger->info("¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤   Verification request. URI   ¤¤¤¤¤¤¤¤¤¤¤¤¤¤");
+	    $logger->info($uri);
         // validate email confirmation link, sets User::isVerified=true and persists
         try {
-            $this->emailVerifier->handleEmailConfirmation($request, $user);
+            $this->emailVerifier->handleEmailConfirmation($uri, $user);
         } catch (VerifyEmailExceptionInterface $exception) {
             return new JsonResponse(["message" => "An exception occured", "exception" => $exception->getReason()], 403);
         }
