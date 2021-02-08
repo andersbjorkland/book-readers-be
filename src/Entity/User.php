@@ -74,7 +74,7 @@ class User implements UserInterface
     private $currentRead;
 
     /**
-     * @ORM\OneToMany(targetEntity=Review::class, mappedBy="user", orphanRemoval=true)
+     * @ORM\OneToMany(targetEntity=Review::class, mappedBy="user", orphanRemoval=true, cascade={"persist", "remove"})
      */
     private $reviews;
 
@@ -193,8 +193,8 @@ class User implements UserInterface
     }
 
 	public function __toString() {
-                                                                     		return $this->getEmail();
-                                                                     	}
+        return $this->getEmail();
+    }
 
     /**
      * @return Collection|Book[]

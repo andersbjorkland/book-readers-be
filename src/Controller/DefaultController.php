@@ -4,9 +4,11 @@ namespace App\Controller;
 
 use App\Entity\Book;
 use App\Entity\CurrentRead;
+use App\Entity\Review;
 use App\Entity\User;
 use App\Repository\BookRepository;
 use App\Repository\CurrentReadRepository;
+use App\Repository\FlairRepository;
 use App\Repository\UserRepository;
 use App\Service\BookCreator;
 use App\Service\BookDataFetcher;
@@ -44,7 +46,19 @@ class DefaultController extends AbstractController
 			for($i = 0; $i < count($currentRead); $i++) {
 				$currentReadArr[] = $currentRead[$i]->getBook()->getData();
 			}
-			return new JsonResponse(["message" => "Successful", "toRead" => $toReadArr, "currentRead" => $currentReadArr]);
+
+			$reviews = $user->getReviews();
+			$reviewArr = [];
+			for($i = 0; $i < count($reviews); $i++) {
+				$reviewArr[] = $reviews[$i];
+			}
+
+			return new JsonResponse([
+				"message" => "Successful",
+				"toRead" => $toReadArr,
+				"currentRead" => $currentReadArr,
+				"reviews" => $reviewArr
+			]);
 		}
 		$logger->info($request);
 
@@ -257,5 +271,82 @@ class DefaultController extends AbstractController
 			}
 			return $books;
 		}
+	}
+
+	/**
+	 * @Route("/user/review", name="getReview", methods={"GET"})
+	 */
+	public function getReview(Request $request) : Response
+	{
+		$user = $this->getUser();
+		$reviews = $user->getReviews();
+		$message = "";
+		if (count($reviews) === 0) {
+			$message = "No reviews";
+		}
+		return new JsonResponse(["message" => $message, "reviews" => json_encode($reviews)]);
+	}
+
+	/**
+	 * @Route("/user/review", name="addReview", methods={"POST"})
+	 */
+	public function postReview(
+		Request $request,
+		LoggerInterface  $logger,
+		BookRepository $bookRepository,
+		FlairRepository $flairRepository) : Response
+	{
+    	$user = $this->getUser();
+		$data = json_decode($request->getContent(), true);
+		$volumeId = $data["volumeId"];
+		$review = $data["review"];
+
+		$book = $bookRepository->findOneByVolumeId($volumeId);
+		if (!$book) {
+			return new JsonResponse(["message" => "No book found"], Response::HTTP_FAILED_DEPENDENCY);
+		}
+
+		$logger->info("##############################################");
+		$logger->info("Volume: $volumeId");
+
+		$score = $review["score"];
+		$impressions = $review["impressions"];
+		$shortReview = $review["shortReview"];
+		$longReview = $review["longReview"];
+		$recommend = $review["recommend"];
+		$isDraft = $review["isDraft"];
+
+		$logger->info("Searching for flairs: ");
+		$flairs = [];
+		for ($i = 0; $i < count($impressions); $i++) {
+			$flair = $flairRepository->findOneByFa($impressions[$i]);
+			if ($flair) {
+				$logger->info($flair->getName());
+				$flairs[] = $flair;
+			} else {
+				$logger->info("Not found with: " . $impressions[$i]);
+			}
+		}
+
+		if (strlen($shortReview) >= 255) {
+			$shortReview = substr($shortReview, 0, 255);
+		}
+
+		$review = new Review();
+		$review->setBook($book);
+		$review->setScore($score);
+		$review->setText($longReview);
+		$review->setSummary($shortReview);
+		$review->setIsDraft($isDraft);
+		$review->setWouldRecommend($recommend);
+		$review->setUser($user);
+
+		$user->addReview($review);
+
+		$em = $this->getDoctrine()->getManager();
+		$em->persist($user);
+		$em->flush();
+
+		return new JsonResponse(["message" => "Added review", "flairs" => $flairs], Response::HTTP_CREATED);
 	}
 }

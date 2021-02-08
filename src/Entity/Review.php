@@ -3,14 +3,16 @@
 namespace App\Entity;
 
 use App\Repository\ReviewRepository;
+use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use JsonSerializable;
 
 /**
  * @ORM\Entity(repositoryClass=ReviewRepository::class)
  */
-class Review
+class Review implements JsonSerializable
 {
     /**
      * @ORM\Id
@@ -52,13 +54,24 @@ class Review
     private $wouldRecommend;
 
     /**
-     * @ORM\ManyToMany(targetEntity=Flair::class, inversedBy="reviews")
+     * @ORM\ManyToMany(targetEntity=Flair::class, inversedBy="reviews", cascade={"persist", "remove"})
      */
     private $flairs;
+
+    /**
+     * @ORM\Column(type="datetime")
+     */
+    private $createdAt;
+
+    /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private $summary;
 
     public function __construct()
     {
         $this->flairs = new ArrayCollection();
+        $this->createdAt = new DateTime('now');
     }
 
     public function getId(): ?int
@@ -161,4 +174,45 @@ class Review
 
         return $this;
     }
+
+    public function getCreatedAt(): ?\DateTimeInterface
+    {
+        return $this->createdAt;
+    }
+
+    public function setCreatedAt(\DateTimeInterface $createdAt): self
+    {
+        $this->createdAt = $createdAt;
+
+        return $this;
+    }
+
+    public function getSummary(): ?string
+    {
+        return $this->summary;
+    }
+
+    public function setSummary(?string $summary): self
+    {
+        $this->summary = $summary;
+
+        return $this;
+    }
+
+	public function jsonSerialize(): array
+	{
+    	$flairs = $this->getFlairs();
+    	$flairArr = [];
+    	for ($i = 0; $i < count($flairs); $i++) {
+    		$flairArr[] = $flairs[$i]->getFa();
+	    }
+
+		return [
+			'book' => $this->getBook()->getData(),
+			'score' => $this->getScore(),
+			'flairs' => $flairArr,
+			'text' => $this->getText(),
+			'summary' => $this->getSummary()
+		];
+	}
 }
