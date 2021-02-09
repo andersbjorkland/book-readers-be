@@ -9,6 +9,7 @@ use App\Entity\User;
 use App\Repository\BookRepository;
 use App\Repository\CurrentReadRepository;
 use App\Repository\FlairRepository;
+use App\Repository\ReviewRepository;
 use App\Repository\UserRepository;
 use App\Service\BookCreator;
 use App\Service\BookDataFetcher;
@@ -208,6 +209,9 @@ class DefaultController extends AbstractController
 	    $book = $bookCreator->getBook($id);
 
 	    $user->addToRead($book);
+	    if ($book->getCurrentRead()) {
+		    $user->removeCurrentRead($book->getCurrentRead());
+	    }
 	    $entityManager->persist($user);
 	    $entityManager->flush();
 
@@ -294,6 +298,7 @@ class DefaultController extends AbstractController
 		Request $request,
 		LoggerInterface  $logger,
 		BookRepository $bookRepository,
+		ReviewRepository $reviewRepository,
 		FlairRepository $flairRepository) : Response
 	{
     	$user = $this->getUser();
@@ -302,6 +307,10 @@ class DefaultController extends AbstractController
 		$review = $data["review"];
 
 		$book = $bookRepository->findOneByVolumeId($volumeId);
+		$reviewPersisted = $reviewRepository->findOneBy([
+			"user" => $user,
+			"book" => $book
+		]);
 		if (!$book) {
 			return new JsonResponse(["message" => "No book found"], Response::HTTP_FAILED_DEPENDENCY);
 		}
@@ -316,8 +325,11 @@ class DefaultController extends AbstractController
 		$recommend = $review["recommend"];
 		$isDraft = $review["isDraft"];
 
-		$review = new Review();
-
+		if ($reviewPersisted) {
+			$review = $reviewPersisted;
+		} else {
+			$review = new Review();
+		}
 
 		$logger->info("Searching for flairs: ");
 		$flairs = [];
@@ -344,12 +356,53 @@ class DefaultController extends AbstractController
 		$review->setWouldRecommend($recommend);
 		$review->setUser($user);
 
-		$user->addReview($review);
-
 		$em = $this->getDoctrine()->getManager();
-		$em->persist($user);
+		if ($reviewPersisted) {
+			$em->persist($review);
+		} else {
+			$user->addReview($review);
+			$em->persist($user);
+		}
+
 		$em->flush();
 
 		return new JsonResponse(["message" => "Added review", "flairs" => $flairs], Response::HTTP_CREATED);
+	}
+
+	/**
+	 * @Route("/user/review", name="removeReview", methods={"DELETE"})
+	 */
+	public function removeReview(
+		Request $request,
+		HttpClientInterface $client,
+		BookRepository $bookRepository,
+		ReviewRepository $reviewRepository) : Response
+	{
+		$user = $this->getUser();
+		$data = json_decode($request->getContent(), true);
+		$id = $data["volumeId"];
+		if (!$id) {
+			return new JsonResponse(["message" => "Expected a value for key 'volumeId'."], Response::HTTP_FAILED_DEPENDENCY);
+		}
+
+		$book = $bookRepository->findOneByVolumeId($id);
+		if (!$book) {
+			return new JsonResponse(["message" => "No book found"], Response::HTTP_FAILED_DEPENDENCY);
+		}
+
+		$review = $reviewRepository->findOneBy([
+			'book' => $book,
+			'user' => $user
+		]);
+		if (!$review) {
+			return new JsonResponse(["message" => "No review found to be removed"], Response::HTTP_FAILED_DEPENDENCY);
+		}
+
+		$user->removeReview($review);
+		$entityManager = $this->getDoctrine()->getManager();
+		$entityManager->persist($user);
+		$entityManager->flush();
+
+		return new JsonResponse(["message" => "Review was removed."], Response::HTTP_ACCEPTED);
 	}
 }

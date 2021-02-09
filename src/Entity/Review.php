@@ -212,7 +212,9 @@ class Review implements JsonSerializable
 			'score' => $this->getScore(),
 			'flairs' => $flairArr,
 			'text' => $this->getText(),
-			'summary' => $this->getSummary()
+			'summary' => $this->getSummary(),
+			'recommended' => $this->getWouldRecommend(),
+			'isDraft' => $this->getIsDraft()
 		];
 	}
 }
