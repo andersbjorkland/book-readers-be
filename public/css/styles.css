@@ -13,6 +13,10 @@ label {
     margin-right: 1rem;
 }
 
+body {
+    padding: 3rem;
+}
+
 form div {
     display: flex;
 }
