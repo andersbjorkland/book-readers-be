@@ -22,6 +22,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 class DefaultController extends AbstractController
@@ -404,5 +405,26 @@ class DefaultController extends AbstractController
 		$entityManager->flush();
 
 		return new JsonResponse(["message" => "Review was removed."], Response::HTTP_ACCEPTED);
+	}
+
+	/**
+	 * @Route("/user/update-password", name="updatePassword", methods={"POST"})
+	 */
+	public function updatePassword(
+		Request $request,
+		UserPasswordEncoderInterface $userPasswordEncoder
+	) : Response
+	{
+		$user = $this->getUser();
+		$data = json_decode($request->getContent(), true);
+		$password = $data["password"];
+		$user->setPassword($userPasswordEncoder->encodePassword($user, $password));
+
+		$entityManager = $this->getDoctrine()->getManager();
+
+		$entityManager->persist($user);
+		$entityManager->flush();
+
+		return new JsonResponse(["message" => "Updated password"], Response::HTTP_CREATED);
 	}
 }
