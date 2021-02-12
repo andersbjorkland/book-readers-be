@@ -9,6 +9,7 @@ use App\Entity\User;
 use App\Repository\BookRepository;
 use App\Repository\CurrentReadRepository;
 use App\Repository\FlairRepository;
+use App\Repository\ResetPasswordRequestRepository;
 use App\Repository\ReviewRepository;
 use App\Repository\UserRepository;
 use App\Service\BookCreator;
@@ -96,11 +97,21 @@ class DefaultController extends AbstractController
 	/**
 	 * @Route("/user/unregister", name="unregister")
 	 */
-	public function unregister(Request $request, LoggerInterface $logger): Response
+	public function unregister(
+		Request $request,
+		LoggerInterface $logger,
+		ResetPasswordRequestRepository $resetRepository
+	): Response
 	{
 		$user = $this->getUser();
 		if ($user) {
+			$resetRequests = $resetRepository->findBy(["user" => $user]);
+
 			$entityManager = $this->getDoctrine()->getManager();
+			for ($i = 0; $i < count($resetRequests); $i++) {
+				$entityManager->remove($resetRequests[$i]);
+			}
+
 			$entityManager->remove($user);
 			$entityManager->flush();
 
